@@ -1,6 +1,6 @@
 [package]
 name = "gwik"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 description = "A CLI tool for simplified Git worktree management"
 license = "MIT"
