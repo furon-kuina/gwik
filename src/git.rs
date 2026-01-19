@@ -11,6 +11,20 @@ pub struct GitRepo {
 impl GitRepo {
     /// Detect the git repository from the current directory
     pub fn detect() -> Result<Self> {
+        // Check if this is a bare repository
+        let is_bare_output = Command::new("git")
+            .args(["rev-parse", "--is-bare-repository"])
+            .output()
+            .context("Failed to run git")?;
+
+        if !is_bare_output.status.success() {
+            bail!("Not in a git repository");
+        }
+
+        let is_bare = String::from_utf8_lossy(&is_bare_output.stdout)
+            .trim()
+            .eq("true");
+
         // Get the common git directory (works from both main repo and worktrees)
         let output = Command::new("git")
             .args(["rev-parse", "--git-common-dir"])
@@ -26,11 +40,16 @@ impl GitRepo {
             .canonicalize()
             .context("Failed to resolve git directory")?;
 
-        // The root is the parent of the .git directory
-        let root = git_dir
-            .parent()
-            .context("Invalid git directory structure")?
-            .to_path_buf();
+        // In a bare repo, the git directory IS the root
+        // In a regular repo, the root is the parent of the .git directory
+        let root = if is_bare {
+            git_dir.clone()
+        } else {
+            git_dir
+                .parent()
+                .context("Invalid git directory structure")?
+                .to_path_buf()
+        };
 
         Ok(Self { root, git_dir })
     }
