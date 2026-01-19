@@ -70,8 +70,9 @@ pub fn run(worktree: Option<&str>, yes: bool) -> Result<()> {
 
     eprintln!("Removed worktree: {}", worktree_name);
 
-    // Output cd command to main repository
-    println!("cd {}", repo.root.display());
+    // Output cd command to main repository (or source_worktree for bare repos)
+    let target_dir = repo.working_dir(config.source_worktree.as_deref());
+    println!("cd {}", target_dir.display());
 
     Ok(())
 }

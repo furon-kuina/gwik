@@ -16,6 +16,8 @@ pub struct GlobalConfig {
 #[derive(Debug, Deserialize, Default)]
 pub struct LocalConfig {
     pub worktree_dir: Option<String>,
+    /// Source worktree path (relative to repo root) for bare repositories
+    pub source_worktree: Option<String>,
     #[serde(default)]
     pub cmds: Vec<String>,
 }
@@ -23,6 +25,8 @@ pub struct LocalConfig {
 #[derive(Debug)]
 pub struct Config {
     pub worktree_dir: String,
+    /// Source worktree path (relative to repo root) for bare repositories
+    pub source_worktree: Option<String>,
     pub roots: Vec<PathBuf>,
     pub cmds: Vec<String>,
 }
@@ -46,11 +50,13 @@ impl Config {
             .filter_map(|r| expand_tilde(&r))
             .collect();
 
-        // cmds is local only
+        // cmds and source_worktree are local only
         let cmds = local.cmds;
+        let source_worktree = local.source_worktree;
 
         Ok(Config {
             worktree_dir,
+            source_worktree,
             roots,
             cmds,
         })
@@ -112,6 +118,7 @@ mod tests {
     fn test_worktree_dir_in_git() {
         let config = Config {
             worktree_dir: ".git/.worktrees".to_string(),
+            source_worktree: None,
             roots: vec![],
             cmds: vec![],
         };
@@ -119,6 +126,7 @@ mod tests {
 
         let config2 = Config {
             worktree_dir: ".worktrees".to_string(),
+            source_worktree: None,
             roots: vec![],
             cmds: vec![],
         };
