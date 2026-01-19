@@ -6,6 +6,7 @@ use anyhow::{bail, Context, Result};
 pub struct GitRepo {
     pub root: PathBuf,
     pub git_dir: PathBuf,
+    pub is_bare: bool,
 }
 
 impl GitRepo {
@@ -51,12 +52,28 @@ impl GitRepo {
                 .to_path_buf()
         };
 
-        Ok(Self { root, git_dir })
+        Ok(Self {
+            root,
+            git_dir,
+            is_bare,
+        })
     }
 
     /// Get worktree directory path based on config
     pub fn worktree_dir(&self, worktree_dir_name: &str) -> PathBuf {
         self.root.join(worktree_dir_name)
+    }
+
+    /// Get the working directory for running git commands
+    /// For bare repos with source_worktree configured, returns that path
+    /// Otherwise returns the repo root
+    pub fn working_dir(&self, source_worktree: Option<&str>) -> PathBuf {
+        if self.is_bare {
+            if let Some(source) = source_worktree {
+                return self.root.join(source);
+            }
+        }
+        self.root.clone()
     }
 
     /// Convert branch name to directory name (slashes to hyphens)

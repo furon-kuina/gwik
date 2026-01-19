@@ -75,7 +75,8 @@ pub fn run(branch: &str, yes: bool) -> Result<()> {
 
     // Run post-creation commands
     if !config.cmds.is_empty() {
-        run_post_commands(&config.cmds, &repo.root, &worktree_path)?;
+        let src = repo.working_dir(config.source_worktree.as_deref());
+        run_post_commands(&config.cmds, &src, &worktree_path)?;
     }
 
     // Output cd command
